@@ -19,11 +19,24 @@ const customLevelsOptions = {
     }
 };
 
-const logger = winston.createLogger({
+const devLogger = winston.createLogger({
     levels: customLevelsOptions.levels,
     transports: [
         new winston.transports.Console({
-            level: 'http',
+            level: 'debug',
+            format: winston.format.combine(
+                winston.format.colorize({ colors: customLevelsOptions.colors }),
+                winston.format.simple()
+            )
+        })
+    ]
+});
+
+const prodLogger = winston.createLogger({
+    levels: customLevelsOptions.levels,
+    transports: [
+        new winston.transports.Console({
+            level: 'info',
             format: winston.format.combine(
                 winston.format.colorize({ colors: customLevelsOptions.colors }),
                 winston.format.simple()
@@ -36,6 +49,8 @@ const logger = winston.createLogger({
         })
     ]
 });
+
+const logger = process.env.NODE_ENV === 'production' ? prodLogger:devLogger;
 
 export const addLogger = (req, res, next) => {
     req.logger = logger;
