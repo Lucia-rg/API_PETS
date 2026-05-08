@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUiExpress from 'swagger-ui-express';
 
 import usersRouter from './routes/users.router.js';
 import petsRouter from './routes/pets.router.js';
@@ -18,6 +20,21 @@ const PORT = process.env.PORT||8080;
 const connection = mongoose.connect(process.env.MONGODB_URI)
     .then(() => logger.info("Conexión a la base de datos exitosa"))
     .catch(error => logger.fatal("Error crítico al conectar a la base de datos", error));
+
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.1',
+        info: {
+            title: 'Documentación de API Pets (AdoptMe)',
+            description: 'API dedicada a la gestión de adopciones de mascotas, usuarios y sesiones.',
+            version: '1.0.0'
+        }
+    },
+    apis: [`./src/docs/**/*.yaml`] 
+};
+
+const specs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 app.use(express.json());
 app.use(cookieParser());

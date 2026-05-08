@@ -1,0 +1,174 @@
+paths:
+  /api/pets:
+    get:
+      summary: Obtiene todas las mascotas.
+      tags:
+        - Pets
+      responses:
+        200:
+          description: Lista de mascotas obtenida con éxito.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pet'
+    post:
+      summary: Crea una mascota sin imagen.
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+      responses:
+        200:
+          description: Mascota creada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetSuccessResponse'
+        400:
+          description: Error de validación (CustomError - INVALID_TYPES_ERROR).
+
+  /api/pets/withimage:
+    post:
+      summary: Crea una mascota con carga de imagen.
+      tags:
+        - Pets
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                specie:
+                  type: string
+                birthDate:
+                  type: string
+                  format: date
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Mascota creada con imagen exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetSuccessResponse'
+        400:
+          description: Incomplete values (Valores incompletos).
+
+  /api/pets/{pid}:
+    put:
+      summary: Actualiza una mascota por ID.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+      responses:
+        200:
+          description: Mascota actualizada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: pet updated
+    delete:
+      summary: Elimina una mascota por ID.
+      tags:
+        - Pets
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mascota eliminada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: pet deleted
+
+components:
+  schemas:
+    Pet:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        specie:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        adopted:
+          type: boolean
+        owner:
+          type: string
+        image:
+          type: string
+    
+    PetInput:
+      type: object
+      required:
+        - name
+        - specie
+        - birthDate
+      properties:
+        name:
+          type: string
+          example: "Moty"
+        specie:
+          type: string
+          example: "Dog"
+        birthDate:
+          type: string
+          format: date
+          example: "2020-01-01"
+
+    PetSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        payload:
+          $ref: '#/components/schemas/Pet'
