@@ -87,22 +87,75 @@ const current = async(req,res) =>{
         return res.send({status:"success",payload:user})
 }
 
-const unprotectedLogin  = async(req,res) =>{
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).send({ status: "error", error: "Incomplete values" });
-    const user = await usersService.getUserByEmail(email);
-    if(!user) return res.status(404).send({status:"error",error:"User doesn't exist"});
-    const isValidPassword = await passwordValidation(user,password);
-    if(!isValidPassword) return res.status(400).send({status:"error",error:"Incorrect password"});
-    const token = jwt.sign(user,'tokenSecretJWT',{expiresIn:"1h"});
-    res.cookie('unprotectedCookie',token,{maxAge:3600000}).send({status:"success",message:"Unprotected Logged in"})
-}
-const unprotectedCurrent = async(req,res)=>{
-    const cookie = req.cookies['unprotectedCookie']
-    const user = jwt.verify(cookie,'tokenSecretJWT');
-    if(user)
-        return res.send({status:"success",payload:user})
-}
+const unprotectedLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            CustomError.createError({
+                    name: "Login error",
+                    cause: `Missing required fields: 
+                    * email
+                    * password`,
+                    message: "Incomplete values for login",
+                    code: EErrors.INVALID_TYPES_ERROR
+            });
+        }
+        
+        const user = await usersService.getUserByEmail(email);
+        if(!user) {
+            CustomError.createError({
+                    name: "Auth error",
+                    cause: `No user found registered with the email ${email}`,
+                    message: "Invalid credentials",
+                    code: EErrors.AUTH_ERROR
+            });
+        }
+        
+        const isValidPassword = await passwordValidation(user,password);
+        if(!isValidPassword) {
+            CustomError.createError({
+                    name: "Auth error",
+                    cause: `Incorrect password`,
+                    message: "Invalid credentials",
+                    code: EErrors.AUTH_ERROR
+            });
+        }
+        
+        const userDto = UserDTO.getUserTokenFrom(user);
+        const token = jwt.sign(userDto,'tokenSecretJWT',{expiresIn:"1h"});
+        res.cookie('unprotectedCookie', token, { maxAge: 3600000 }).send({ status: "success", message: "Unprotected Logged in" });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const unprotectedCurrent = async (req, res) => {
+    try {
+        const cookie = req.cookies['unprotectedCookie'];
+
+        if (!cookie) {
+            CustomError.createError({
+                name: "AuthorizationError",
+                cause: "No se encontró la cookie de sesión en la petición",
+                message: "No autorizado",
+                code: EErrors.AUTHENTICATION_ERROR
+            });
+        }
+        
+        const user = jwt.verify(cookie, 'tokenSecretJWT');
+        res.send({ status: "success", payload: user });
+
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            req.logger.warning(`Intento de acceso con token inválido/expirado`);
+            return res.status(401).send({ status: "error", error: "Invalid or expired token" });
+        }
+
+        next(error);
+    }
+};
+
 export default {
     current,
     login,

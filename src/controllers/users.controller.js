@@ -21,7 +21,7 @@ const getUser = async(req,res,next)=> {
         }
         res.send({status:"success",payload:user})     
     } catch (error) {
-        
+        next(error);
     }
 }
 
@@ -45,10 +45,23 @@ const updateUser =async(req,res,next)=>{
     }
 }
 
-const deleteUser = async(req,res) =>{
-    const userId = req.params.uid;
-    const result = await usersService.getUserById(userId);
-    res.send({status:"success",message:"User deleted"})
+const deleteUser = async(req,res,next) =>{
+    try {
+        const userId = req.params.uid;
+        const user = await usersService.getUserById(userId);
+        if(!user) {
+                CustomError.createError({
+                name: "User update error",
+                cause: `The user with ID ${userId} does not exist in the database`,
+                message: "Error updating user",
+                code: EErrors.ROUTING_ERROR
+                });
+            }
+        const result = await usersService.delete(userId);
+        res.send({status:"success",message:"User deleted"})  
+    } catch (error) {
+        next(error); 
+    }  
 }
 
 export default {
