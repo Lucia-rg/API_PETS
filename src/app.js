@@ -17,7 +17,12 @@ import { addLogger } from './utils/logger.js';
 
 const app = express();
 const PORT = process.env.PORT||8080;
-const connection = mongoose.connect(process.env.MONGODB_URI)
+
+const connectionString = process.env.NODE_ENV === 'test' 
+    ? process.env.MONGODB_URI_TEST
+    : process.env.MONGODB_URI;
+
+const connection = mongoose.connect(connectionString)
     .then(() => logger.info("Conexión a la base de datos exitosa"))
     .catch(error => logger.fatal("Error crítico al conectar a la base de datos", error));
 
@@ -58,4 +63,8 @@ app.get('/loggerTest', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT,()=>logger.info(`Server running on: http://localhost:${PORT} - Entorno: ${process.env.NODE_ENV}`))
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT,()=>logger.info(`Server running on: http://localhost:${PORT} - Entorno: ${process.env.NODE_ENV}`));
+}
+
+export default app;
