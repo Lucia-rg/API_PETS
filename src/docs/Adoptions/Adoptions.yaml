@@ -5,8 +5,8 @@ paths:
       tags:
         - Adoptions
       responses:
-        200:
-          description: Lista de adopciones obtenida con éxito.
+        "200":
+          description: Lista de adopciones obtenida exitosamente.
           content:
             application/json:
               schema:
@@ -19,8 +19,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Adoption'
-        500:
-          description: Error interno del servidor.
+        "500":
+          description: Error interno de conexión a la base de datos (DATABASE_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
 
   /api/adoptions/{aid}:
     get:
@@ -31,12 +35,12 @@ paths:
         - name: aid
           in: path
           required: true
-          description: ID único de la adopción.
           schema:
             type: string
+          description: ID de la adopción en MongoDB.
       responses:
-        200:
-          description: Adopción encontrada.
+        "200":
+          description: Adopción encontrada exitosamente.
           content:
             application/json:
               schema:
@@ -47,30 +51,40 @@ paths:
                     example: success
                   payload:
                     $ref: '#/components/schemas/Adoption'
-        404:
-          description: Adopción no encontrada.
+        "400":
+          description: El formato del ID proporcionado es inválido (CastError).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+        "404":
+          description: La adopción no existe en la base de datos (ROUTING_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
 
   /api/adoptions/{uid}/{pid}:
     post:
-      summary: Crea una nueva adopción vinculando un usuario y una mascota.
+      summary: Crea una nueva adopción vinculando a un usuario y una mascota.
       tags:
         - Adoptions
       parameters:
         - name: uid
           in: path
           required: true
-          description: ID del usuario que adopta.
           schema:
             type: string
+          description: ID del usuario (adoptante).
         - name: pid
           in: path
           required: true
-          description: ID de la mascota a ser adoptada.
           schema:
             type: string
+          description: ID de la mascota (adoptada).
       responses:
-        200:
-          description: Adopción procesada con éxito.
+        "200":
+          description: Adopción procesada exitosamente. Se actualizaron las colecciones de User, Pet y Adoptions.
           content:
             application/json:
               schema:
@@ -82,10 +96,27 @@ paths:
                   message:
                     type: string
                     example: Pet adopted
-        400:
-          description: La mascota ya ha sido adoptada previamente.
-        404:
-          description: El usuario o la mascota no existen en la base de datos.
+        "400":
+          description: La mascota solicitada ya se encuentra adoptada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  error:
+                    type: string
+                    example: Pet is already adopted
+        "404":
+          description: El usuario o la mascota no fueron encontrados en la base de datos (ROUTING_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+        "500":
+          description: Error interno del servidor al procesar la transacción o formato de ID inválido.
 
 components:
   schemas:
@@ -94,14 +125,27 @@ components:
       properties:
         _id:
           type: string
-          description: ID autogenerado de la adopción.
+          example: 64b1f2e3c9e8a1b2c3d4e5f9
         owner:
           type: string
-          description: ID del usuario (propietario).
+          description: ID del usuario que adoptó.
+          example: 64b1f2e3c9e8a1b2c3d4e5f6
         pet:
           type: string
           description: ID de la mascota adoptada.
-      example:
-        _id: "64b1f2e3c9e8a1b2c3d4e5f9"
-        owner: "64b1f2e3c9e8a1b2c3d4e5f6"
-        pet: "64b1f2e3c9e8a1b2c3d4e5f7"
+          example: 64b1f2e3c9e8a1b2c3d4e5f7
+        date:
+          type: string
+          format: date-time
+          description: Fecha de creación del registro de adopción.
+          
+    ErrorResponseStandard:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        error:
+          type: string
+          description: Nombre o descripción del error capturado.
+          example: "User not found"

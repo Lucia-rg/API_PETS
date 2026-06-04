@@ -5,7 +5,7 @@ paths:
       tags:
         - Pets
       responses:
-        200:
+        "200":
           description: Lista de mascotas obtenida con éxito.
           content:
             application/json:
@@ -19,6 +19,13 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Pet'
+        "500":
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+          
     post:
       summary: Crea una mascota sin imagen.
       tags:
@@ -30,14 +37,18 @@ paths:
             schema:
               $ref: '#/components/schemas/PetInput'
       responses:
-        200:
+        "200":
           description: Mascota creada exitosamente.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetSuccessResponse'
-        400:
-          description: Error de validación (CustomError - INVALID_TYPES_ERROR).
+        "400":
+          description: Error de validación por valores incompletos (INVALID_TYPES_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse400'
 
   /api/pets/withimage:
     post:
@@ -49,26 +60,35 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              required: [name, specie, birthDate]
               properties:
                 name:
                   type: string
+                  example: "Moty"
                 specie:
                   type: string
+                  example: "Dog"
                 birthDate:
                   type: string
                   format: date
+                  example: "2020-01-01"
                 image:
                   type: string
                   format: binary
+                  description: Imagen binaria de la mascota
       responses:
-        200:
+        "200":
           description: Mascota creada con imagen exitosamente.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PetSuccessResponse'
-        400:
-          description: Incomplete values (Valores incompletos).
+        "400":
+          description: Error de validación por valores incompletos (INVALID_TYPES_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse400'
 
   /api/pets/{pid}:
     put:
@@ -81,14 +101,15 @@ paths:
           required: true
           schema:
             type: string
+          description: ID de la mascota en MongoDB.
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/PetInput'
       responses:
-        200:
-          description: Mascota actualizada.
+        "200":
+          description: Mascota actualizada exitosamente.
           content:
             application/json:
               schema:
@@ -100,6 +121,19 @@ paths:
                   message:
                     type: string
                     example: pet updated
+        "400":
+          description: Formato de ID inválido (CastError).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+        "404":
+          description: Mascota no encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+          
     delete:
       summary: Elimina una mascota por ID.
       tags:
@@ -110,9 +144,10 @@ paths:
           required: true
           schema:
             type: string
+          description: ID de la mascota en MongoDB.
       responses:
-        200:
-          description: Mascota eliminada.
+        "200":
+          description: Mascota eliminada exitosamente.
           content:
             application/json:
               schema:
@@ -124,6 +159,18 @@ paths:
                   message:
                     type: string
                     example: pet deleted
+        "400":
+          description: Formato de ID inválido (CastError).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
+        "404":
+          description: Mascota no encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseStandard'
 
 components:
   schemas:
@@ -143,15 +190,13 @@ components:
           type: boolean
         owner:
           type: string
+          nullable: true
         image:
           type: string
     
     PetInput:
       type: object
-      required:
-        - name
-        - specie
-        - birthDate
+      required: [name, specie, birthDate]
       properties:
         name:
           type: string
@@ -172,3 +217,26 @@ components:
           example: success
         payload:
           $ref: '#/components/schemas/Pet'
+
+    ErrorResponse400:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        error:
+          type: string
+          example: "Pet creation error"
+        cause:
+          type: string
+          example: "Missing required fields"
+
+    ErrorResponseStandard:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        error:
+          type: string
+          example: "Invalid pet ID format"

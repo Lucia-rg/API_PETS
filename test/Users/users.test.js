@@ -94,5 +94,4 @@ describe('Testing del Router de Users (/api/users)', function () {
         expect(response.body.error).to.equal('User not found');
     });
 
-
 });

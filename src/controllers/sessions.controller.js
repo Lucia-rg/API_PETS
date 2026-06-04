@@ -80,11 +80,35 @@ const login = async (req, res, next) => {
 
 }
 
-const current = async(req,res) =>{
-    const cookie = req.cookies['coderCookie']
-    const user = jwt.verify(cookie,'tokenSecretJWT');
-    if(user)
-        return res.send({status:"success",payload:user})
+const logout = async (req, res, next) => {
+    try {
+        res.clearCookie('coderCookie');
+        res.send({ status: "success", message: "Logged out" });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const current = async(req, res, next) =>{
+    try {
+        const cookie = req.cookies['coderCookie'];
+        if (!cookie) {
+            return res.status(401).send({ 
+                status: "error", 
+                error: "No autenticado: Token no proporcionado" 
+            });
+        }
+
+        const user = jwt.verify(cookie,'tokenSecretJWT');
+        if(user)
+            return res.send({status:"success",payload:user})
+        
+    } catch (error) {
+        return res.status(401).send({ 
+            status: "error", 
+            error: "No autenticado: Token inválido o expirado" 
+        });  
+    }
 }
 
 const unprotectedLogin = async (req, res) => {
@@ -136,7 +160,7 @@ const unprotectedCurrent = async (req, res) => {
 
         if (!cookie) {
             CustomError.createError({
-                name: "AuthorizationError",
+                name: "Authorization Error",
                 cause: "No se encontró la cookie de sesión en la petición",
                 message: "No autorizado",
                 code: EErrors.AUTHENTICATION_ERROR
@@ -159,6 +183,7 @@ const unprotectedCurrent = async (req, res) => {
 export default {
     current,
     login,
+    logout,
     register,
     current,
     unprotectedLogin,
