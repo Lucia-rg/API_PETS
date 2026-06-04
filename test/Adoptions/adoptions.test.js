@@ -89,7 +89,7 @@ describe('Testing del Router de Adoptions (/api/adoptions)', function () {
 
         expect(response.statusCode).to.equal(404);
         expect(response.body.status).to.equal('error');
-        expect(response.body.error).to.equal('user Not found');
+        expect(response.body.error).to.equal('User not found');
     });
 
     it('5. POST /api/adoptions/:uid/:pid - Debe retornar error 404 si la mascota no existe', async function () {
@@ -129,6 +129,30 @@ describe('Testing del Router de Adoptions (/api/adoptions)', function () {
         });
 
         expect(petExistsInUser).to.be.true;
+    });
+
+    it('8. GET /api/adoptions/:aid - Debe devolver error si el formato del ID de adopción es inválido (CastError)', async function () {
+        const invalidFormatId = '12345';
+        const response = await requester.get(`/api/adoptions/${invalidFormatId}`);
+
+        expect(response.statusCode).to.be.oneOf([400, 404, 500]);
+        expect(response.body.status).to.equal('error');
+    });
+
+    it('9. POST /api/adoptions/:uid/:pid - Debe devolver error si el formato del ID de usuario es inválido', async function () {
+        const invalidUid = 'usuario-invalido';
+        const response = await requester.post(`/api/adoptions/${invalidUid}/${testAvailablePetId}`);
+
+        expect(response.statusCode).to.be.oneOf([400, 404, 500]);
+        expect(response.body.status).to.equal('error');
+    });
+
+    it('10. POST /api/adoptions/:uid/:pid - Debe devolver error si el formato del ID de la mascota es inválido', async function () {
+        const invalidPid = 'mascota-invalida';
+        const response = await requester.post(`/api/adoptions/${testUserId}/${invalidPid}`);
+
+        expect(response.statusCode).to.be.oneOf([400, 404, 500]);
+        expect(response.body.status).to.equal('error');
     });
 
 });
