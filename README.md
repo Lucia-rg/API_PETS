@@ -29,7 +29,7 @@ Sigue estos pasos para preparar tu entorno de desarrollo y levantar el proyecto 
 
 **1. Clonar el repositorio e instalar las dependencias:**
 ```bash
-git clone [https://github.com/Lucia-rg/API_PETS.git](https://github.com/Lucia-rg/API_PETS.git)
+git clone https://github.com/Lucia-rg/API_PETS.git
 cd API_PETS
 npm install
 ```
