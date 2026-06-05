@@ -23,9 +23,9 @@ API PETS es un sistema backend RESTful diseñado para gestionar la adopción de 
 
 ---
 
-## 🛠️ Configuración e Instalación Local
+## 🛠️ Configuración e instalación local
 
-Sigue estos pasos para preparar tu entorno de desarrollo y levantar el proyecto en tu máquina física:
+Sigue estos pasos para preparar tu entorno de desarrollo y levantar el proyecto:
 
 **1. Clonar el repositorio e instalar las dependencias:**
 ```bash
