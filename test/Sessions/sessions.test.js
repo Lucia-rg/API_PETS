@@ -146,7 +146,7 @@ describe('Testing del Router de Sessions (/api/sessions)', function () {
         expect(clearedCookie).to.exist;
     });
 
-    it('11. GET /api/sessions/current - Debe rechazar la petición si el token fue alterado (Firma inválida)', async function () {
+    it('11. GET /api/sessions/current - Debe rechazar la petición si el token fue alterado (firma inválida)', async function () {
 
         const tamperedCookie = 'coderCookie=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.UnPayloadFalso.UnaFirmaInventada';
         
@@ -156,6 +156,15 @@ describe('Testing del Router de Sessions (/api/sessions)', function () {
         expect(response.statusCode).to.equal(401);
         expect(response.body.status).to.equal('error');
         expect(response.body.error).to.include('inválido'); 
+    });
+
+    it('12. GET /api/sessions/current - Debe devolver 401 al consultar current después de un logout', async function () {
+
+        await requester.get('/api/sessions/logout');
+
+        const response = await requester.get('/api/sessions/current');
+
+        expect(response.statusCode).to.equal(401);
     });
 
 });
