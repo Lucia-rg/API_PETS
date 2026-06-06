@@ -19,7 +19,7 @@ API PETS es un sistema backend RESTful diseñado para gestionar la adopción de 
 ## 🔗 Enlaces Importantes
 
 * **Repositorio de GitHub:** [🔗 https://github.com/Lucia-rg/API_PETS.git](https://github.com/Lucia-rg/API_PETS.git)
-* **Imagen en DockerHub:** [🔗 https://hub.docker.com/repository/docker/luciarodg/api-pets](https://hub.docker.com/repository/docker/luciarodg/api-pets)
+* **Imagen en DockerHub:** [🔗 https://hub.docker.com/r/luciarodg/api-pets](https://hub.docker.com/r/luciarodg/api-pets)
 
 ---
 
